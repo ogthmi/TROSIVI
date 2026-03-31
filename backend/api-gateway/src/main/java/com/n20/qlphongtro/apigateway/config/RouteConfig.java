@@ -25,6 +25,15 @@ public class RouteConfig {
                 .route("admin-route", r -> r.path("/api/admin/**")
                         .uri("lb://user-service"))
 
+                .route("room-route", r -> r.path("/api/room/**")
+                        .uri("lb://room-service"))
+
+                .route("room-service-route", r -> r.path("/api/service/**")
+                        .uri("lb://room-service-service"))
+
+                .route("contract-service-route", r -> r.path("/api/contract/**")
+                        .uri("lb://contract-service"))
+
                 .build();
     }
 }

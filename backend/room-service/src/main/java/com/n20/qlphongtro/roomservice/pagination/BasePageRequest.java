@@ -1,4 +1,4 @@
-package com.n20.qlphongtro.userservice.common.pagination;
+package com.n20.qlphongtro.roomservice.pagination;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
