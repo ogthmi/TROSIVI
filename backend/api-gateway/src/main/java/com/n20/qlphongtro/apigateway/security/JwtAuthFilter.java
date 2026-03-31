@@ -1,13 +1,16 @@
 package com.n20.qlphongtro.apigateway.security;
 
 import jakarta.ws.rs.core.HttpHeaders;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @Component
 public class JwtAuthFilter implements WebFilter {
 
@@ -39,10 +42,19 @@ public class JwtAuthFilter implements WebFilter {
         }
 
         String userId = jwtUtil.getUserId(token);
-        exchange.getRequest().mutate()
+        log.info("UserId from token: {}", userId);
+        String userRole = jwtUtil.getUserRole(token);
+        log.info("UserRole from token: {}", userRole);
+
+        ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
                 .header("X-User-Id", userId)
+                .header("X-User-Role", userRole)
                 .build();
 
-        return chain.filter(exchange);
+        ServerWebExchange mutatedExchange = exchange.mutate()
+                .request(mutatedRequest)
+                .build();
+
+        return chain.filter(mutatedExchange);
     }
 }

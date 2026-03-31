@@ -1,6 +1,6 @@
 package com.n20.qlphongtro.userservice.service;
 
-import com.n20.qlphongtro.userservice.common.pagination.PageUtil;
+import com.n20.qlphongtro.userservice.pagination.PageUtil;
 import com.n20.qlphongtro.userservice.entity.User;
 import com.n20.qlphongtro.userservice.entity.UserRole;
 import com.n20.qlphongtro.userservice.exception.BusinessException;

@@ -9,10 +9,10 @@
         <relativePath/>
     </parent>
     <groupId>com.n20.qlphongtro</groupId>
-    <artifactId>user-service</artifactId>
+    <artifactId>contract-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>user-service</name>
-    <description>user-service</description>
+    <name>contract-service</name>
+    <description>contract-service</description>
     <url/>
     <licenses>
         <license/>
@@ -58,6 +58,14 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webflux</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webflux</artifactId>
         </dependency>
     </dependencies>
     <dependencyManagement>

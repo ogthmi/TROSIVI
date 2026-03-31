@@ -1,4 +1,4 @@
-package com.n20.qlphongtro.userservice.common.pagination;
+package com.n20.qlphongtro.userservice.pagination;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
