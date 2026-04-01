@@ -7,6 +7,22 @@ spring:
     config:
         import:
             - optional:classpath:.env.properties
+    cloud:
+        gateway:
+            globalcors:
+                corsConfigurations:
+                    '[/**]':
+                        allowedOrigins:
+                            - "http://localhost:5173"
+                        allowedMethods:
+                            - GET
+                            - POST
+                            - PUT
+                            - DELETE
+                            - OPTIONS
+                        allowedHeaders:
+                            - "*"
+                        allowCredentials: true
 
 jwt:
     access-token-secret: ${ACCESS_TOKEN_SECRET}

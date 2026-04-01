@@ -3,14 +3,23 @@ package com.n20.qlphongtro.contractservice.service;
 import com.n20.qlphongtro.contractservice.dto.ContractPayload;
 import com.n20.qlphongtro.contractservice.entity.*;
 import com.n20.qlphongtro.contractservice.exception.BusinessException;
+import com.n20.qlphongtro.contractservice.pagination.PageUtil;
+import com.n20.qlphongtro.contractservice.repository.ContractPageRequest;
 import com.n20.qlphongtro.contractservice.repository.ContractRepository;
+import com.n20.qlphongtro.contractservice.repository.ContractSpecification;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.List;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -24,6 +33,16 @@ public class ContractService {
 
         return webClient.get()
                 .uri("lb://user-service/api/customer/{userId}", userId)
+                .retrieve()
+                .bodyToMono(User.class)
+                .block();
+    }
+
+    private User getManagerById(Long userId) {
+        WebClient webClient = webClientBuilder.build();
+
+        return webClient.get()
+                .uri("lb://user-service/api/manager/{userId}", userId)
                 .retrieve()
                 .bodyToMono(User.class)
                 .block();
@@ -62,7 +81,7 @@ public class ContractService {
         );
 
         if (isOverlap) {
-            throw new RuntimeException("Room is already rented in this time");
+            throw new BusinessException("Room is already rented in this time");
         }
 
     }
@@ -84,6 +103,7 @@ public class ContractService {
                 .contractedServices(newContractedServices)
                 .build();
     }
+
     protected Contract saveContract(Contract request, User customer, Room room) {
         request.setContractId(null);
         request.setStatus(ContractStatus.PENDING);
@@ -110,5 +130,47 @@ public class ContractService {
                 .contract(contract)
                 .contractedServices(contractedServices)
                 .build();
+    }
+
+    public Page<Contract> getContracts(ContractPageRequest pageRequest) {
+        final List<String> CONTRACT_SORT_FIELDS = List.of(
+                "contractId", "managerId", "customerId", "roomId",
+                "rentalPrice", "deposit", "startDate", "endDate"
+        );
+
+        Sort sort = PageUtil.buildSort(pageRequest.getSortBy(), pageRequest.getDirection(), CONTRACT_SORT_FIELDS);
+
+        Pageable pageable = PageUtil.buildPageable(pageRequest, sort);
+
+        Specification<Contract> specification = ContractSpecification.build(pageRequest);
+
+        Page<Contract> contractPage = contractRepository.findAll(specification, pageable);
+
+        contractPage.getContent().forEach(c -> {
+            var customer = getCustomerById(c.getCustomerId());
+            var manager = getManagerById(c.getManagerId());
+            var room = getRoomById(c.getRoomId());
+
+            c.setCustomer(customer);
+            c.setManager(manager);
+            c.setRoom(room);
+        });
+
+        return contractPage;
+    }
+
+    public Map<Long, Boolean> checkRoomExistContract(LocalDate startDate, LocalDate endDate, String roomIdString) {
+        List<Long> roomIds = Arrays.stream(roomIdString.split(","))
+                .map(Long::parseLong).toList();
+
+        List<Long> overlappedRoomIds = contractRepository
+                .findRoomIdsHavingOverlappingContract(roomIds, startDate, endDate)
+                .stream().distinct().toList();
+
+        return roomIds.stream()
+                .collect(Collectors.toMap(
+                        roomId -> roomId,
+                        roomId -> overlappedRoomIds.contains(roomId)
+                ));
     }
 }
